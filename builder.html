@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Builder Pattern Demo – Multi-Domain Examples</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --bg:#0f172a; --panel:#111827; --card:#1f2937; --ink:#e5e7eb; --muted:#9ca3af; --accent:#60a5fa; }
+    *{box-sizing:border-box} body{margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;background:linear-gradient(180deg,#0b1220,#0f172a);}
+    header{padding:28px 20px;text-align:center;color:var(--ink)}
+    header h1{margin:0 0 6px;font-weight:700;letter-spacing:.3px}
+    header p{margin:0;color:var(--muted)}
+    .wrap{max-width:1200px;margin:0 auto;padding:16px;display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+    .card{background:var(--card);border:1px solid #2a3651;border-radius:16px;padding:18px;color:var(--ink);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    .card h2{margin:0 0 10px;font-size:18px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px}
+    input,select,button,textarea{width:100%;padding:10px;border-radius:12px;border:1px solid #2b395a;background:#0b1220;color:var(--ink)}
+    textarea{min-height:68px}
+    button{cursor:pointer;background:var(--accent);color:#031425;border:none;font-weight:700}
+    button.secondary{background:#0b1220;color:var(--ink);border:1px dashed #334155}
+    .out{margin-top:12px;background:#0b1220;border:1px solid #263148;border-radius:12px;padding:10px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;white-space:pre-wrap;word-break:break-word}
+    .hint{font-size:12px;color:var(--muted);margin-top:8px}
+    .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#0b7; color:#021; font-size:11px; font-weight:700}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .foot{max-width:1200px;margin:10px auto 26px;color:var(--muted);text-align:center;font-size:12px}
+    code.inline{background:#0b1220;border:1px solid #263148;padding:2px 6px;border-radius:8px}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Builder Pattern – Add Options Without Touching Core Code</h1>
+    <p>Fluent builders for four apps + live “optional feature” extensions added later via prototype… no modifications required.</p>
+  </header>
+
+  <div class="wrap">
+    <!-- Food Delivery: Pizza -->
+    <section class="card" id="pizzaCard">
+      <h2>Food Delivery App – Pizza Order <span class="badge">Builder</span></h2>
+      <label>Size</label>
+      <select id="pizzaSize">
+        <option>Small</option><option selected>Medium</option><option>Large</option>
+      </select>
+
+      <div class="row">
+        <div>
+          <label>Toppings (comma separated)</label>
+          <input id="pizzaToppings" placeholder="mushroom, olives, jalapeño" />
+        </div>
+        <div>
+          <label>Add-ons (comma separated)</label>
+          <input id="pizzaAddons" placeholder="extra cheese, garlic dip" />
+        </div>
+      </div>
+
+      <label>Delivery Preference</label>
+      <select id="pizzaPref">
+        <option selected>Contactless</option><option>Hand to me</option><option>Leave at door</option>
+      </select>
+
+      <label>Address / Note</label>
+      <textarea id="pizzaAddr" placeholder="Apt 304, Ring bell"></textarea>
+
+      <div class="row" style="margin-top:10px">
+        <button onclick="buildPizza()">Build Pizza Order</button>
+        <button class="secondary" onclick="addPizzaEcoExtension()">⚙️ Add Optional: Eco Packaging (post-hoc)</button>
+      </div>
+      <div class="hint">Click the secondary button to add a <code class="inline">withEcoPackaging()</code> method dynamically, then rebuild.</div>
+      <div class="out" id="pizzaOut"></div>
+    </section>
+
+    <!-- Banking: Loan Application -->
+    <section class="card" id="loanCard">
+      <h2>Banking App – Loan Application <span class="badge">Builder</span></h2>
+      <div class="row">
+        <div>
+          <label>Customer Name</label>
+          <input id="loanName" placeholder="Asha Verma" />
+        </div>
+        <div>
+          <label>Age</label>
+          <input id="loanAge" type="number" min="18" value="30" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Loan Type</label>
+          <select id="loanType">
+            <option>Home</option><option selected>Personal</option><option>Education</option><option>Vehicle</option>
+          </select>
+        </div>
+        <div>
+          <label>Principal (₹)</label>
+          <input id="loanPrincipal" type="number" value="500000" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Interest (%)</label>
+          <input id="loanInterest" type="number" value="11.5" step="0.1" />
+        </div>
+        <div>
+          <label>Documents (comma separated)</label>
+          <input id="loanDocs" placeholder="Aadhaar, PAN, Salary slips" />
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button onclick="buildLoan()">Build Loan Application</button>
+        <button class="secondary" onclick="addLoanInsuranceExtension()">⚙️ Add Optional: Credit Insurance (post-hoc)</button>
+      </div>
+      <div class="hint">Adds <code class="inline">withInsurance(provider, premium)</code> dynamically to the builder.</div>
+      <div class="out" id="loanOut"></div>
+    </section>
+
+    <!-- E-commerce: Laptop Config -->
+    <section class="card" id="laptopCard">
+      <h2>E-commerce – Customized Laptop <span class="badge">Builder</span></h2>
+      <div class="grid-3">
+        <div>
+          <label>CPU</label>
+          <select id="lapCpu">
+            <option>Intel i5</option><option selected>Intel i7</option><option>Ryzen 5</option><option>Ryzen 7</option>
+          </select>
+        </div>
+        <div>
+          <label>RAM</label>
+          <select id="lapRam">
+            <option>8 GB</option><option selected>16 GB</option><option>32 GB</option>
+          </select>
+        </div>
+        <div>
+          <label>Storage</label>
+          <select id="lapStorage">
+            <option>512 GB SSD</option><option selected>1 TB SSD</option><option>2 TB SSD</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Graphics</label>
+          <select id="lapGpu">
+            <option>Integrated</option><option selected>NVIDIA RTX 4060</option><option>NVIDIA RTX 4070</option>
+          </select>
+        </div>
+        <div>
+          <label>Warranty</label>
+          <select id="lapWarranty">
+            <option>Standard (1Y)</option><option selected>Extended (2Y)</option><option>Premium (3Y)</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Accessories (comma separated)</label>
+      <input id="lapAcc" placeholder="USB-C hub, Sleeve, Mouse" />
+
+      <div class="row" style="margin-top:10px">
+        <button onclick="buildLaptop()">Build Laptop</button>
+        <button class="secondary" onclick="addLaptopRGBExtension()">⚙️ Add Optional: RGB Keyboard (post-hoc)</button>
+      </div>
+      <div class="hint">Adds <code class="inline">withRGBKeyboard(zoneCount)</code> to the builder prototype at runtime.</div>
+      <div class="out" id="laptopOut"></div>
+    </section>
+
+    <!-- Ride-Hailing: Ride Booking -->
+    <section class="card" id="rideCard">
+      <h2>Ride-Hailing – Ride Booking <span class="badge">Builder</span></h2>
+      <div class="row">
+        <div>
+          <label>Pickup</label>
+          <input id="ridePickup" placeholder="SR University Gate 2" />
+        </div>
+        <div>
+          <label>Drop</label>
+          <input id="rideDrop" placeholder="Kazipet Junction" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Vehicle Type</label>
+          <select id="rideType">
+            <option>Auto</option><option selected>Mini</option><option>Sedan</option><option>SUV</option>
+          </select>
+        </div>
+        <div>
+          <label>Time</label>
+          <input id="rideTime" type="datetime-local" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Payment Method</label>
+          <select id="ridePay">
+            <option>Cash</option><option selected>UPI</option><option>Card</option><option>Wallet</option>
+          </select>
+        </div>
+        <div>
+          <label>Stops (comma separated)</label>
+          <input id="rideStops" placeholder="Hanamkonda Bus Stop" />
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button onclick="buildRide()">Build Ride Booking</button>
+        <button class="secondary" onclick="addRideBabySeatExtension()">⚙️ Add Optional: Baby Seat (post-hoc)</button>
+      </div>
+      <div class="hint">Adds <code class="inline">withBabySeat(ageGroup)</code> to the builder without touching original code.</div>
+      <div class="out" id="rideOut"></div>
+    </section>
+  </div>
+
+  <div class="foot">
+    <strong>Why Builder?</strong> Complex objects with many optional parts are easier to compose via fluent steps.
+    To add a new optional feature later, we can extend the builder (e.g., via prototype or composition) instead of editing existing constructors or clients.
+  </div>
+
+  <script>
+    /* ============ DOMAIN MODELS ============ */
+    class PizzaOrder {
+      constructor({ size, toppings = [], addons = [], deliveryPref, address, extras = {} } = {}) {
+        this.type = "PizzaOrder";
+        this.size = size;
+        this.toppings = toppings;
+        this.addons = addons;
+        this.deliveryPref = deliveryPref;
+        this.address = address;
+        this.extras = extras; // extension-friendly bag
+      }
+    }
+    class LoanApplication {
+      constructor({ customer, age, loanType, principal, interest, documents = [], stages = [], extras = {} } = {}) {
+        this.type = "LoanApplication";
+        this.customer = customer;
+        this.age = age;
+        this.loanType = loanType;
+        this.principal = principal;
+        this.interest = interest;
+        this.documents = documents;
+        this.stages = stages;
+        this.extras = extras;
+      }
+    }
+    class LaptopConfig {
+      constructor({ cpu, ram, storage, gpu, warranty, accessories = [], extras = {} } = {}) {
+        this.type = "LaptopConfig";
+        this.cpu = cpu; this.ram = ram; this.storage = storage; this.gpu = gpu;
+        this.warranty = warranty; this.accessories = accessories; this.extras = extras;
+      }
+    }
+    class RideBooking {
+      constructor({ pickup, drop, vehicleType, time, paymentMethod, stops = [], preferences = {}, extras = {} } = {}) {
+        this.type = "RideBooking";
+        this.pickup = pickup; this.drop = drop; this.vehicleType = vehicleType;
+        this.time = time; this.paymentMethod = paymentMethod; this.stops = stops;
+        this.preferences = preferences; this.extras = extras;
+      }
+    }
+
+    /* ============ BUILDERS (Fluent) ============ */
+    class PizzaOrderBuilder {
+      constructor() { this._size = "Medium"; this._toppings = []; this._addons = []; this._deliveryPref = "Contactless"; this._address = ""; this._extras = {}; }
+      size(sz){ this._size = sz; return this; }
+      addTopping(name){ if(name) this._toppings.push(name.trim()); return this; }
+      addAddon(name){ if(name) this._addons.push(name.trim()); return this; }
+      deliveryPreference(pref){ this._deliveryPref = pref; return this; }
+      address(addr){ this._address = addr; return this; }
+      build(){ return new PizzaOrder({ size:this._size, toppings:this._toppings, addons:this._addons, deliveryPref:this._deliveryPref, address:this._address, extras:this._extras }); }
+    }
+
+    class LoanApplicationBuilder {
+      constructor(){ this._stages = []; this._documents = []; this._extras = {}; }
+      customer(name, age){ this._customer = name; this._age = age; return this; }
+      loanType(type){ this._loanType = type; return this; }
+      principal(amount){ this._principal = Number(amount); return this; }
+      interest(rate){ this._interest = Number(rate); return this; }
+      addDocument(doc){ if(doc) this._documents.push(doc.trim()); return this; }
+      addStage(stage){ if(stage) this._stages.push(stage.trim()); return this; }
+      build(){ return new LoanApplication({ customer:this._customer, age:this._age, loanType:this._loanType, principal:this._principal, interest:this._interest, documents:this._documents, stages:this._stages, extras:this._extras }); }
+    }
+
+    class LaptopBuilder {
+      constructor(){ this._extras = {}; this._accessories = []; }
+      cpu(v){ this._cpu = v; return this; }
+      ram(v){ this._ram = v; return this; }
+      storage(v){ this._storage = v; return this; }
+      gpu(v){ this._gpu = v; return this; }
+      warranty(v){ this._warranty = v; return this; }
+      addAccessory(v){ if(v) this._accessories.push(v.trim()); return this; }
+      build(){ return new LaptopConfig({ cpu:this._cpu, ram:this._ram, storage:this._storage, gpu:this._gpu, warranty:this._warranty, accessories:this._accessories, extras:this._extras }); }
+    }
+
+    class RideBookingBuilder {
+      constructor(){ this._stops = []; this._preferences = {}; this._extras = {}; }
+      pickup(v){ this._pickup = v; return this; }
+      drop(v){ this._drop = v; return this; }
+      vehicleType(v){ this._vehicleType = v; return this; }
+      time(v){ this._time = v; return this; }
+      paymentMethod(v){ this._paymentMethod = v; return this; }
+      addStop(v){ if(v) this._stops.push(v.trim()); return this; }
+      addPreference(k,v){ if(k) this._preferences[k] = v; return this; }
+      build(){ return new RideBooking({ pickup:this._pickup, drop:this._drop, vehicleType:this._vehicleType, time:this._time, paymentMethod:this._paymentMethod, stops:this._stops, preferences:this._preferences, extras:this._extras }); }
+    }
+
+    /* ========= OPTIONAL FEATURES ADDED LATER (no core edits) =========
+       We simulate “later” by only defining these when the user clicks the ⚙️ buttons.
+       Each extension augments the builder prototype and writes into ._extras — keeping
+       original product constructors and clients unchanged.
+    ================================================================ */
+    let ecoExtAdded=false, insExtAdded=false, rgbExtAdded=false, babySeatExtAdded=false;
+
+    function addPizzaEcoExtension(){
+      if(ecoExtAdded) return alert("Eco Packaging already enabled.");
+      PizzaOrderBuilder.prototype.withEcoPackaging = function(enabled=true){
+        this._extras.ecoPackaging = !!enabled;
+        return this;
+      };
+      ecoExtAdded = true;
+      alert("✅ Extension added: PizzaOrderBuilder.withEcoPackaging(enabled=true)");
+    }
+
+    function addLoanInsuranceExtension(){
+      if(insExtAdded) return alert("Insurance extension already enabled.");
+      LoanApplicationBuilder.prototype.withInsurance = function(provider="ACME Insurance", annualPremium=0){
+        this._extras.insurance = { provider, annualPremium: Number(annualPremium) };
+        return this;
+      };
+      insExtAdded = true;
+      alert("✅ Extension added: LoanApplicationBuilder.withInsurance(provider, premium)");
+    }
+
+    function addLaptopRGBExtension(){
+      if(rgbExtAdded) return alert("RGB extension already enabled.");
+      LaptopBuilder.prototype.withRGBKeyboard = function(zoneCount=4){
+        this._extras.rgbKeyboard = { enabled:true, zones:Number(zoneCount) };
+        return this;
+      };
+      rgbExtAdded = true;
+      alert("✅ Extension added: LaptopBuilder.withRGBKeyboard(zoneCount)");
+    }
+
+    function addRideBabySeatExtension(){
+      if(babySeatExtAdded) return alert("Baby seat extension already enabled.");
+      RideBookingBuilder.prototype.withBabySeat = function(ageGroup="0-3y"){
+        this._extras.babySeat = { required:true, ageGroup };
+        return this;
+      };
+      babySeatExtAdded = true;
+      alert("✅ Extension added: RideBookingBuilder.withBabySeat(ageGroup)");
+    }
+
+    /* ============ UI HOOKS: BUILD ACTIONS ============ */
+    const toList = (s) => (s||"").split(",").map(x=>x.trim()).filter(Boolean);
+
+    function buildPizza(){
+      const b = new PizzaOrderBuilder()
+        .size(document.getElementById("pizzaSize").value)
+        .deliveryPreference(document.getElementById("pizzaPref").value)
+        .address(document.getElementById("pizzaAddr").value);
+
+      toList(document.getElementById("pizzaToppings").value).forEach(t=>b.addTopping(t));
+      toList(document.getElementById("pizzaAddons").value).forEach(a=>b.addAddon(a));
+
+      // If extension was added, demonstrate using it
+      if(typeof b.withEcoPackaging === "function") b.withEcoPackaging(true);
+
+      const order = b.build();
+      document.getElementById("pizzaOut").textContent = JSON.stringify(order, null, 2);
+    }
+
+    function buildLoan(){
+      const b = new LoanApplicationBuilder()
+        .customer(document.getElementById("loanName").value, Number(document.getElementById("loanAge").value))
+        .loanType(document.getElementById("loanType").value)
+        .principal(document.getElementById("loanPrincipal").value)
+        .interest(document.getElementById("loanInterest").value);
+
+      toList(document.getElementById("loanDocs").value).forEach(d=>b.addDocument(d));
+      b.addStage("Submitted").addStage("Underwriting");
+
+      if(typeof b.withInsurance === "function") b.withInsurance("SecureLife", 2899);
+
+      const app = b.build();
+      document.getElementById("loanOut").textContent = JSON.stringify(app, null, 2);
+    }
+
+    function buildLaptop(){
+      const b = new LaptopBuilder()
+        .cpu(document.getElementById("lapCpu").value)
+        .ram(document.getElementById("lapRam").value)
+        .storage(document.getElementById("lapStorage").value)
+        .gpu(document.getElementById("lapGpu").value)
+        .warranty(document.getElementById("lapWarranty").value);
+
+      toList(document.getElementById("lapAcc").value).forEach(a=>b.addAccessory(a));
+      if(typeof b.withRGBKeyboard === "function") b.withRGBKeyboard(4);
+
+      const cfg = b.build();
+      document.getElementById("laptopOut").textContent = JSON.stringify(cfg, null, 2);
+    }
+
+    function buildRide(){
+      const b = new RideBookingBuilder()
+        .pickup(document.getElementById("ridePickup").value)
+        .drop(document.getElementById("rideDrop").value)
+        .vehicleType(document.getElementById("rideType").value)
+        .time(document.getElementById("rideTime").value)
+        .paymentMethod(document.getElementById("ridePay").value);
+
+      toList(document.getElementById("rideStops").value).forEach(s=>b.addStop(s));
+      b.addPreference("ac", true);
+
+      if(typeof b.withBabySeat === "function") b.withBabySeat("0-3y");
+
+      const booking = b.build();
+      document.getElementById("rideOut").textContent = JSON.stringify(booking, null, 2);
+    }
+
+    // Demo defaults for quick try
+    document.getElementById("pizzaToppings").value = "mushroom, olives";
+    document.getElementById("pizzaAddons").value = "extra cheese";
+    document.getElementById("loanDocs").value = "Aadhaar, PAN";
+    document.getElementById("lapAcc").value = "USB-C hub, Sleeve";
+    document.getElementById("rideStops").value = "Hanamkonda Bus Stop";
+  </script>
+</body>
+</html>
